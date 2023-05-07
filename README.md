@@ -58,6 +58,6 @@ if ofs.Button("Select all troughs") then
 end
 ```
 
-## Notes and known issues
-- The extension is not highly optimized in terms of loop operations, but should be 
-- Upon initial startup
+## Notes
+- The extension is not highly optimized in terms of loop operations, but that should not be a problem. Benchmark reporting is included in the extension logs, and using the example script showcased above, it is able to refresh statistics for ~250 actions in around 7 ms. The stats are only refreshed when certain conditions are met as explained in the features, so this should not have an impact on GUI performance.
+- Upon initial startup, the statistics get refreshed multiple times as the editor loads the various scripts written for a project. This behavior does not repeat after initialization or when reloading the extension.
