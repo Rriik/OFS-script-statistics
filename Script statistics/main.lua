@@ -1,6 +1,8 @@
 
 --------------- GLOBAL VARIABLES ----------------
 
+DEBUG = true
+
 CurrentActiveScriptIdx = -1                                 -- stores current active script index
 CurrentSelectedIndices = {}                                 -- stores current selected action indices
 ScriptChanged = false                                       -- scriptChange() flag
@@ -181,6 +183,17 @@ function gui()
                 and string.format("%.3f", ScriptStatistics.MaxSelectedTroughDuration) or "0.000")  .. " msec")
             ofs.Text("Minimum: " .. (ScriptStatistics.MinSelectedTroughDuration ~= MIN_VALUE
                 and string.format("%.3f", ScriptStatistics.MinSelectedTroughDuration) or "0.000")  .. " msec")
+        end
+    end
+    if DEBUG then
+        ofs.Separator()
+        if ofs.CollapsingHeader("Debug options") then
+            if ofs.Button("Select all peaks") then
+                select_all_peaks_or_troughs("peaks")
+            end
+            if ofs.Button("Select all troughs") then
+                select_all_peaks_or_troughs("troughs")
+            end
         end
     end
 end
@@ -511,4 +524,22 @@ function update_peaks_troughs(actions)
     end
 
     return maxima, minima
+end
+
+function select_all_peaks_or_troughs(which)
+    local script = ofs.Script(ofs.ActiveIdx())
+    local peaks, troughs = update_peaks_troughs(script.actions)
+    for _, action in ipairs(script.actions) do
+        action.selected = false
+    end
+    if which == "peaks" then
+        for _, action in ipairs(peaks) do
+            action.selected = true
+        end
+    elseif which == "troughs" then
+        for _, action in ipairs(troughs) do
+            action.selected = true
+        end
+    end
+    script:commit()
 end

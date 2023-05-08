@@ -30,33 +30,7 @@ Peaks and troughs are mathematical local maxima and minima (points on a plot whi
 - multiple actions in a row that have the same position value will be considered local extrema if at least one fulfills the requirements for that
 - the first and last actions (edges) of a script will be considered local extrema
 
-Optionally, to get a better sense of which actions are counted as peaks and troughs, you can add extra functionality to the `main.lua` script file, such as buttons that highlight the peaks and troughs by selecting the respective actions in the timeline. To do that, paste this code at the bottom of the `gui()` function in the script:
-
-```lua
-if ofs.Button("Select all peaks") then
-    local script = ofs.Script(ofs.ActiveIdx())
-    local peaks, troughs = update_peaks_troughs(script.actions)
-    for _, action in ipairs(script.actions) do
-        action.selected = false
-    end
-    for _, action in ipairs(peaks) do
-        action.selected = true
-    end
-    script:commit()
-end
-
-if ofs.Button("Select all troughs") then
-    local script = ofs.Script(ofs.ActiveIdx())
-    local peaks, troughs = update_peaks_troughs(script.actions)
-    for _, action in ipairs(script.actions) do
-        action.selected = false
-    end
-    for _, action in ipairs(troughs) do
-        action.selected = true
-    end
-    script:commit()
-end
-```
+Optionally, to get a better sense of which actions are counted as peaks and troughs, you can change the `DEBUG` value in the `main.lua` script file from `false` to `true` to allow a separate debug section to appear at the bottom of the extension GUI. This debug section contains buttons that highlight the peaks and troughs by selecting the respective actions in the timeline.
 
 ## Notes
 - The extension is not highly optimized in terms of loop operations, but that should not be a problem. Benchmark reporting is included in the extension logs, and using the example script showcased above, it is able to refresh statistics for ~250 actions in around 7 ms. The stats are only refreshed when certain conditions are met as explained in the features, so this should not have an impact on GUI performance.
