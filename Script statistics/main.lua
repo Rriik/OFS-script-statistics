@@ -1,7 +1,7 @@
 
 --------------- GLOBAL VARIABLES ----------------
 
-DEBUG = true
+DEBUG = false
 
 CurrentActiveScriptIdx = -1                                 -- stores current active script index
 CurrentSelectedIndices = {}                                 -- stores current selected action indices
