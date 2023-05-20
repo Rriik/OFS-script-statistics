@@ -68,11 +68,18 @@ function reset_selected_values()
     ScriptStatistics.MinSelectedTroughDuration = MIN_VALUE  -- min duration between selected troughs (msec)
 end
 
-function init()
-    -- this runs once when enabling the extension
+function reset_all_values()
     reset_general_values()
     reset_selected_values()
-    CurrentSelectedIndices = ofs.Script(ofs.ActiveIdx()):selectedIndices()
+end
+
+function init()
+    -- this runs once when enabling the extension
+    reset_all_values()
+    local script = ofs.Script(ofs.ActiveIdx())
+    if script ~= nil then
+        CurrentSelectedIndices = script:selectedIndices()
+    end
     print("initialized")
 end
 
@@ -208,6 +215,10 @@ end
 -- checks whether certain conditions are met for updating statistics
 function check_update_needed(scriptIdx)
     local script = ofs.Script(scriptIdx)
+    if script == nil then
+        reset_all_values()
+        return
+    end
     local selectedIndices = script:selectedIndices()
 
     -- active script index changes
@@ -528,6 +539,9 @@ end
 
 function select_all_peaks_or_troughs(which)
     local script = ofs.Script(ofs.ActiveIdx())
+    if script == nil then
+        return
+    end
     local peaks, troughs = update_peaks_troughs(script.actions)
     for _, action in ipairs(script.actions) do
         action.selected = false
