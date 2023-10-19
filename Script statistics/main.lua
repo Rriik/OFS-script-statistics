@@ -264,7 +264,7 @@ function update_general_section(scriptIdx)
 
     local script = ofs.Script(scriptIdx)
     local actions = script.actions
-    local peaks, troughs = update_peaks_troughs(actions)
+    local peaks, troughs = get_peaks_troughs(actions)
 
     ScriptStatistics.TotalActions = #actions
     if ScriptStatistics.TotalActions > 0 then
@@ -329,7 +329,7 @@ function update_selected_section(scriptIdx)
     for idx, selectedIndex in ipairs(script:selectedIndices()) do
         selectedActions[idx] = script.actions[selectedIndex]
     end
-    local peaks, troughs = update_peaks_troughs(selectedActions)
+    local peaks, troughs = get_peaks_troughs(selectedActions)
 
     ScriptStatistics.SelectedActions = #selectedActions
     if ScriptStatistics.SelectedActions > 0 then
@@ -389,9 +389,9 @@ end
 
 -- gets speed (position change over time) between two actions
 function get_action_speed(action1, action2)
-    local pos_diff = math.abs(get_action_pos_diff(action1, action2))
-    local pos_dur = get_action_duration(action1, action2)
-    return pos_diff / pos_dur
+    local posDiff = math.abs(get_action_pos_diff(action1, action2))
+    local posDur = get_action_duration(action1, action2)
+    return posDiff / posDur
 end
 
 -- gets time duration between two actions
@@ -421,12 +421,14 @@ end
 function table_compare_no_order(table1, table2)
     if #table1 ~= #table2 then return false end
     -- Lazy implementation: Sort copies of both tables instead of using a binary search. Takes twice as much memory.
-    local t1_sorted = {table.unpack(table1)} -- simple way to copy the table, limited by stack size
-    table.sort(t1_sorted)
-    local t2_sorted = {table.unpack(table2)}
-    table.sort(t2_sorted)
-    for i, v1 in ipairs(t1_sorted) do
-        if t2_sorted[i] ~= v1 then return false end
+    local table1Sorted = {table.unpack(table1)} -- simple way to copy the table, limited by stack size
+    table.sort(table1Sorted)
+    local table2Sorted = {table.unpack(table2)}
+    table.sort(table2Sorted)
+    for idx, value in ipairs(table1Sorted) do
+        if table2Sorted[idx] ~= value then
+            return false
+        end
     end
     return true
 end
@@ -435,10 +437,10 @@ end
 -- correctly identifies all peaks and troughs according to mathematic definitions, including equal value
 -- sequences found anywhere in the table
 -- returns the maxima and minima as two tables of actions
-function update_peaks_troughs(actions)
+function get_peaks_troughs(actions)
     local maxima, minima = {}, {}
     local n = #actions
-    local prev_pos_diff, next_pos_diff
+    local prevPosDiff, nextPosDiff
     local slopeTrend = SlopeDirection.NEUTRAL
 
     -- deal with edge cases where there at most 2 actions
@@ -456,29 +458,29 @@ function update_peaks_troughs(actions)
     end
 
     -- check the first action for local extrema
-    next_pos_diff = get_action_pos_diff(actions[1], actions[2])
-    if next_pos_diff > 0 then
+    nextPosDiff = get_action_pos_diff(actions[1], actions[2])
+    if nextPosDiff > 0 then
         table.insert(minima, actions[1])
         slopeTrend = SlopeDirection.RISING
-    elseif next_pos_diff < 0 then
+    elseif nextPosDiff < 0 then
         table.insert(maxima, actions[1])
         slopeTrend = SlopeDirection.FALLING
     end -- equal positions always get handled with the benefit of hindsight, so not here
 
     -- check the middle actions for local extrema
     for i = 2, n - 1 do
-        prev_pos_diff = get_action_pos_diff(actions[i - 1], actions[i])
-        next_pos_diff = get_action_pos_diff(actions[i], actions[i + 1])
+        prevPosDiff = get_action_pos_diff(actions[i - 1], actions[i])
+        nextPosDiff = get_action_pos_diff(actions[i], actions[i + 1])
         -- if prev and next actions have higher positions, current position is local minima
-        if prev_pos_diff < 0 and next_pos_diff > 0 then
+        if prevPosDiff < 0 and nextPosDiff > 0 then
             table.insert(minima, actions[i])
             slopeTrend = SlopeDirection.RISING
         -- if prev and next actions have lower positions, current position is local maxima
-        elseif prev_pos_diff > 0 and next_pos_diff < 0 then
+        elseif prevPosDiff > 0 and nextPosDiff < 0 then
             table.insert(maxima, actions[i])
             slopeTrend = SlopeDirection.FALLING
         -- if prev action has same position and next action has higher position
-        elseif prev_pos_diff == 0 and next_pos_diff > 0 then
+        elseif prevPosDiff == 0 and nextPosDiff > 0 then
             -- if the slope was not trending upwards before this point, all prior actions with
             -- equal positions are local minima
             if slopeTrend ~= SlopeDirection.RISING then
@@ -491,7 +493,7 @@ function update_peaks_troughs(actions)
                 slopeTrend = SlopeDirection.RISING
             end
         -- if prev action has same position and next action has lower position
-        elseif prev_pos_diff == 0 and next_pos_diff < 0 then
+        elseif prevPosDiff == 0 and nextPosDiff < 0 then
             -- if the slope was not trending downwards before this point, all prior actions with
             -- equal positions are local maxima
             if slopeTrend ~= SlopeDirection.FALLING then
@@ -507,10 +509,10 @@ function update_peaks_troughs(actions)
     end
 
     -- check the last action for local extrema
-    next_pos_diff = get_action_pos_diff(actions[n - 1], actions[n])
-    if next_pos_diff > 0 then -- if position increases, last action becomes local maxima
+    nextPosDiff = get_action_pos_diff(actions[n - 1], actions[n])
+    if nextPosDiff > 0 then -- if position increases, last action becomes local maxima
         table.insert(maxima, actions[n])
-    elseif next_pos_diff < 0 then -- if position decreases, last action becomes local minima
+    elseif nextPosDiff < 0 then -- if position decreases, last action becomes local minima
         table.insert(minima, actions[n])
     else -- if position remains the same
         -- if the slope was trending upwards before this point, all prior actions with equal
@@ -542,7 +544,7 @@ function select_all_peaks_or_troughs(which)
     if script == nil then
         return
     end
-    local peaks, troughs = update_peaks_troughs(script.actions)
+    local peaks, troughs = get_peaks_troughs(script.actions)
     for _, action in ipairs(script.actions) do
         action.selected = false
     end
