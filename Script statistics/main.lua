@@ -1,3 +1,4 @@
+local Utils = require("utils")                              -- include utils.lua
 
 --------------- GLOBAL VARIABLES ----------------
 
@@ -196,10 +197,10 @@ function gui()
         ofs.Separator()
         if ofs.CollapsingHeader("Debug options") then
             if ofs.Button("Select all peaks") then
-                select_all_peaks_or_troughs("peaks")
+                Utils.select_all_peaks_or_troughs("peaks")
             end
             if ofs.Button("Select all troughs") then
-                select_all_peaks_or_troughs("troughs")
+                Utils.select_all_peaks_or_troughs("troughs")
             end
         end
     end
@@ -237,7 +238,7 @@ function check_update_needed(scriptIdx)
         ScriptChanged = false
 
     -- selection changes
-    elseif not table_compare_no_order(selectedIndices, CurrentSelectedIndices) then
+    elseif not Utils.table_compare_no_order(selectedIndices, CurrentSelectedIndices) then
         print("selection changed")
         update_statistics(scriptIdx, "selected")
         CurrentSelectedIndices = selectedIndices
@@ -264,7 +265,7 @@ function update_general_section(scriptIdx)
 
     local script = ofs.Script(scriptIdx)
     local actions = script.actions
-    local peaks, troughs = get_peaks_troughs(actions)
+    local peaks, troughs = Utils.get_peaks_troughs(actions)
 
     ScriptStatistics.TotalActions = #actions
     if ScriptStatistics.TotalActions > 0 then
@@ -282,29 +283,29 @@ function update_general_section(scriptIdx)
         ScriptStatistics.MinActionPosition = math.min(action.pos, ScriptStatistics.MinActionPosition)
 
         if prevAction then
-            local actionSpeed = get_action_speed(prevAction, action)
+            local actionSpeed = Utils.get_action_speed(prevAction, action)
             ScriptStatistics.AvgSpeed = ScriptStatistics.AvgSpeed + actionSpeed
             ScriptStatistics.MaxSpeed = math.max(actionSpeed, ScriptStatistics.MaxSpeed)
             ScriptStatistics.MinSpeed = math.min(actionSpeed, ScriptStatistics.MinSpeed)
 
-            local actionDuration = get_action_duration(prevAction, action) * 1000
+            local actionDuration = Utils.get_action_duration(prevAction, action) * 1000
             ScriptStatistics.AvgDuration = ScriptStatistics.AvgDuration + actionDuration
             ScriptStatistics.MaxDuration = math.max(actionDuration, ScriptStatistics.MaxDuration)
             ScriptStatistics.MinDuration = math.min(actionDuration, ScriptStatistics.MinDuration)
         end
         prevAction = action
 
-        if find_action_in_table(action, peaks) then
+        if Utils.find_action_in_table(action, peaks) then
             if prevPeak then
-                local peakDuration = get_action_duration(prevPeak, action) * 1000
+                local peakDuration = Utils.get_action_duration(prevPeak, action) * 1000
                 ScriptStatistics.AvgPeakDuration = ScriptStatistics.AvgPeakDuration + peakDuration
                 ScriptStatistics.MaxPeakDuration = math.max(peakDuration, ScriptStatistics.MaxPeakDuration)
                 ScriptStatistics.MinPeakDuration = math.min(peakDuration, ScriptStatistics.MinPeakDuration)
             end
             prevPeak = action
-        elseif find_action_in_table(action, troughs) then
+        elseif Utils.find_action_in_table(action, troughs) then
             if prevTrough then
-                local troughDuration = get_action_duration(prevTrough, action) * 1000
+                local troughDuration = Utils.get_action_duration(prevTrough, action) * 1000
                 ScriptStatistics.AvgTroughDuration = ScriptStatistics.AvgTroughDuration + troughDuration
                 ScriptStatistics.MaxTroughDuration = math.max(troughDuration, ScriptStatistics.MaxTroughDuration)
                 ScriptStatistics.MinTroughDuration = math.min(troughDuration, ScriptStatistics.MinTroughDuration)
@@ -329,7 +330,7 @@ function update_selected_section(scriptIdx)
     for idx, selectedIndex in ipairs(script:selectedIndices()) do
         selectedActions[idx] = script.actions[selectedIndex]
     end
-    local peaks, troughs = get_peaks_troughs(selectedActions)
+    local peaks, troughs = Utils.get_peaks_troughs(selectedActions)
 
     ScriptStatistics.SelectedActions = #selectedActions
     if ScriptStatistics.SelectedActions > 0 then
@@ -347,29 +348,29 @@ function update_selected_section(scriptIdx)
         ScriptStatistics.MinSelectedActionPosition = math.min(action.pos, ScriptStatistics.MinSelectedActionPosition)
 
         if prevAction then
-            local actionSpeed = get_action_speed(prevAction, action)
+            local actionSpeed = Utils.get_action_speed(prevAction, action)
             ScriptStatistics.AvgSelectedSpeed = ScriptStatistics.AvgSelectedSpeed + actionSpeed
             ScriptStatistics.MaxSelectedSpeed = math.max(actionSpeed, ScriptStatistics.MaxSelectedSpeed)
             ScriptStatistics.MinSelectedSpeed = math.min(actionSpeed, ScriptStatistics.MinSelectedSpeed)
 
-            local actionDuration = get_action_duration(prevAction, action) * 1000
+            local actionDuration = Utils.get_action_duration(prevAction, action) * 1000
             ScriptStatistics.AvgSelectedDuration = ScriptStatistics.AvgSelectedDuration + actionDuration
             ScriptStatistics.MaxSelectedDuration = math.max(actionDuration, ScriptStatistics.MaxSelectedDuration)
             ScriptStatistics.MinSelectedDuration = math.min(actionDuration, ScriptStatistics.MinSelectedDuration)
         end
         prevAction = action
 
-        if find_action_in_table(action, peaks) then
+        if Utils.find_action_in_table(action, peaks) then
             if prevPeak then
-                local peakDuration = get_action_duration(prevPeak, action) * 1000
+                local peakDuration = Utils.get_action_duration(prevPeak, action) * 1000
                 ScriptStatistics.AvgSelectedPeakDuration = ScriptStatistics.AvgSelectedPeakDuration + peakDuration
                 ScriptStatistics.MaxSelectedPeakDuration = math.max(peakDuration, ScriptStatistics.MaxSelectedPeakDuration)
                 ScriptStatistics.MinSelectedPeakDuration = math.min(peakDuration, ScriptStatistics.MinSelectedPeakDuration)
             end
             prevPeak = action
-        elseif find_action_in_table(action, troughs) then
+        elseif Utils.find_action_in_table(action, troughs) then
             if prevTrough then
-                local troughDuration = get_action_duration(prevTrough, action) * 1000
+                local troughDuration = Utils.get_action_duration(prevTrough, action) * 1000
                 ScriptStatistics.AvgSelectedTroughDuration = ScriptStatistics.AvgSelectedTroughDuration + troughDuration
                 ScriptStatistics.MaxSelectedTroughDuration = math.max(troughDuration, ScriptStatistics.MaxSelectedTroughDuration)
                 ScriptStatistics.MinSelectedTroughDuration = math.min(troughDuration, ScriptStatistics.MinSelectedTroughDuration)
@@ -383,179 +384,4 @@ function update_selected_section(scriptIdx)
     ScriptStatistics.AvgSelectedDuration = ScriptStatistics.AvgSelectedDuration / (ScriptStatistics.SelectedActions - 1)
     ScriptStatistics.AvgSelectedPeakDuration = ScriptStatistics.AvgSelectedPeakDuration / (ScriptStatistics.SelectedPeaks - 1)
     ScriptStatistics.AvgSelectedTroughDuration = ScriptStatistics.AvgSelectedTroughDuration / (ScriptStatistics.SelectedTroughs - 1)
-end
-
---------------- HELPER FUNCTIONS ----------------
-
--- gets speed (position change over time) between two actions
-function get_action_speed(action1, action2)
-    local posDiff = math.abs(get_action_pos_diff(action1, action2))
-    local posDur = get_action_duration(action1, action2)
-    return posDiff / posDur
-end
-
--- gets time duration between two actions
-function get_action_duration(action1, action2)
-    return math.abs(action2.at - action1.at)
-end
-
--- gets position difference between two actions
-function get_action_pos_diff(action1, action2)
-    return action2.pos - action1.pos
-end
-
--- checks whether an action is found in a table of actions
--- uses the fact that each action must have a unique 'at' value
--- downside: only works correctly as long as both the action and action table are part of the same script
-function find_action_in_table(targetAction, actionTable)
-    for _, action in ipairs(actionTable) do
-        if action.at == targetAction.at then
-            return true
-        end
-    end
-    return false
-end
-
--- compares two tables that contain simple values
--- source: https://stackoverflow.com/a/71362491
-function table_compare_no_order(table1, table2)
-    if #table1 ~= #table2 then return false end
-    -- Lazy implementation: Sort copies of both tables instead of using a binary search. Takes twice as much memory.
-    local table1Sorted = {table.unpack(table1)} -- simple way to copy the table, limited by stack size
-    table.sort(table1Sorted)
-    local table2Sorted = {table.unpack(table2)}
-    table.sort(table2Sorted)
-    for idx, value in ipairs(table1Sorted) do
-        if table2Sorted[idx] ~= value then
-            return false
-        end
-    end
-    return true
-end
-
--- full implementation of an algorithm that finds local extrema (minima and maxima) in a table of actions
--- correctly identifies all peaks and troughs according to mathematic definitions, including equal value
--- sequences found anywhere in the table
--- returns the maxima and minima as two tables of actions
-function get_peaks_troughs(actions)
-    local maxima, minima = {}, {}
-    local n = #actions
-    local prevPosDiff, nextPosDiff
-    local slopeTrend = SlopeDirection.NEUTRAL
-
-    -- deal with edge cases where there at most 2 actions
-    if n <= 1 then -- there need to be at least two actions to identify local extrema
-        return maxima, minima
-    elseif n == 2 then
-        if get_action_pos_diff(actions[1], actions[2]) > 0 then
-            table.insert(maxima, actions[2])
-            table.insert(minima, actions[1])
-        elseif get_action_pos_diff(actions[1], actions[2]) < 0 then
-            table.insert(maxima, actions[1])
-            table.insert(minima, actions[2])
-        end -- if the two actions have equal positions, there are no extrema
-        return maxima, minima
-    end
-
-    -- check the first action for local extrema
-    nextPosDiff = get_action_pos_diff(actions[1], actions[2])
-    if nextPosDiff > 0 then
-        table.insert(minima, actions[1])
-        slopeTrend = SlopeDirection.RISING
-    elseif nextPosDiff < 0 then
-        table.insert(maxima, actions[1])
-        slopeTrend = SlopeDirection.FALLING
-    end -- equal positions always get handled with the benefit of hindsight, so not here
-
-    -- check the middle actions for local extrema
-    for i = 2, n - 1 do
-        prevPosDiff = get_action_pos_diff(actions[i - 1], actions[i])
-        nextPosDiff = get_action_pos_diff(actions[i], actions[i + 1])
-        -- if prev and next actions have higher positions, current position is local minima
-        if prevPosDiff < 0 and nextPosDiff > 0 then
-            table.insert(minima, actions[i])
-            slopeTrend = SlopeDirection.RISING
-        -- if prev and next actions have lower positions, current position is local maxima
-        elseif prevPosDiff > 0 and nextPosDiff < 0 then
-            table.insert(maxima, actions[i])
-            slopeTrend = SlopeDirection.FALLING
-        -- if prev action has same position and next action has higher position
-        elseif prevPosDiff == 0 and nextPosDiff > 0 then
-            -- if the slope was not trending upwards before this point, all prior actions with
-            -- equal positions are local minima
-            if slopeTrend ~= SlopeDirection.RISING then
-                table.insert(minima, actions[i])
-                local idx = i
-                while idx > 1 and get_action_pos_diff(actions[idx - 1], actions[idx]) == 0 do
-                    table.insert(minima, actions[idx - 1])
-                    idx = idx - 1
-                end
-                slopeTrend = SlopeDirection.RISING
-            end
-        -- if prev action has same position and next action has lower position
-        elseif prevPosDiff == 0 and nextPosDiff < 0 then
-            -- if the slope was not trending downwards before this point, all prior actions with
-            -- equal positions are local maxima
-            if slopeTrend ~= SlopeDirection.FALLING then
-                table.insert(maxima, actions[i])
-                local idx = i
-                while idx > 1 and get_action_pos_diff(actions[idx - 1], actions[idx]) == 0 do
-                    table.insert(maxima, actions[idx - 1])
-                    idx = idx - 1
-                end
-                slopeTrend = SlopeDirection.FALLING
-            end
-        end
-    end
-
-    -- check the last action for local extrema
-    nextPosDiff = get_action_pos_diff(actions[n - 1], actions[n])
-    if nextPosDiff > 0 then -- if position increases, last action becomes local maxima
-        table.insert(maxima, actions[n])
-    elseif nextPosDiff < 0 then -- if position decreases, last action becomes local minima
-        table.insert(minima, actions[n])
-    else -- if position remains the same
-        -- if the slope was trending upwards before this point, all prior actions with equal
-        -- positions are local maxima
-        if slopeTrend == SlopeDirection.RISING then
-            table.insert(maxima, actions[n])
-            local idx = n
-            while idx > 1 and get_action_pos_diff(actions[idx - 1], actions[idx]) == 0 do
-                table.insert(maxima, actions[idx - 1])
-                idx = idx - 1
-            end
-        -- if the slope was trending downwards before this point, all prior actions with equal
-        -- positions are local minima
-        elseif slopeTrend == SlopeDirection.FALLING then
-            table.insert(minima, actions[n])
-            local idx = n
-            while idx > 1 and get_action_pos_diff(actions[idx - 1], actions[idx]) == 0 do
-                table.insert(minima, actions[idx - 1])
-                idx = idx - 1
-            end
-        end
-    end
-
-    return maxima, minima
-end
-
-function select_all_peaks_or_troughs(which)
-    local script = ofs.Script(ofs.ActiveIdx())
-    if script == nil then
-        return
-    end
-    local peaks, troughs = get_peaks_troughs(script.actions)
-    for _, action in ipairs(script.actions) do
-        action.selected = false
-    end
-    if which == "peaks" then
-        for _, action in ipairs(peaks) do
-            action.selected = true
-        end
-    elseif which == "troughs" then
-        for _, action in ipairs(troughs) do
-            action.selected = true
-        end
-    end
-    script:commit()
 end
