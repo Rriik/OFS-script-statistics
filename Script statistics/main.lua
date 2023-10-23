@@ -1,12 +1,10 @@
 local Utils = require("utils")                              -- include utils.lua
 
---------------- GLOBAL VARIABLES ----------------
-
-DEBUG = false
-
 CurrentActiveScriptIdx = -1                                 -- stores current active script index
 CurrentSelectedIndices = {}                                 -- stores current selected action indices
 ScriptChanged = false                                       -- scriptChange() flag
+
+Logging = false                                             -- whether to enable detailed extension logging
 
 MIN_VALUE = 1.0e10                                          -- intentionally set as positive value
 MAX_VALUE = -1.0e10                                         -- intentionally set as negative value
@@ -145,6 +143,8 @@ function gui()
                 and string.format("%.3f", ScriptStatistics.MinTroughDuration) or "0.000")  .. " msec")
         end
     end
+    ofs.Separator()
+
     if ofs.CollapsingHeader("Selected") then
         ofs.Text("Actions: " .. ScriptStatistics.SelectedActions)
         ofs.Text("Runtime: " ..
@@ -193,15 +193,15 @@ function gui()
                 and string.format("%.3f", ScriptStatistics.MinSelectedTroughDuration) or "0.000")  .. " msec")
         end
     end
-    if DEBUG then
-        ofs.Separator()
-        if ofs.CollapsingHeader("Debug options") then
-            if ofs.Button("Select all peaks") then
-                Utils.select_all_peaks_or_troughs("peaks")
-            end
-            if ofs.Button("Select all troughs") then
-                Utils.select_all_peaks_or_troughs("troughs")
-            end
+    ofs.Separator()
+
+    if ofs.CollapsingHeader("Debug options") then
+        Logging, _ = ofs.Checkbox("Enable logging", Logging)
+        if ofs.Button("Select all peaks") then
+            Utils.select_all_peaks_or_troughs("peaks")
+        end
+        if ofs.Button("Select all troughs") then
+            Utils.select_all_peaks_or_troughs("troughs")
         end
     end
 end
@@ -224,7 +224,7 @@ function check_update_needed(scriptIdx)
 
     -- active script index changes
     if scriptIdx ~= CurrentActiveScriptIdx then
-        print("active index changed")
+        if Logging then print("active index changed") end
         update_statistics(scriptIdx, "all")
         CurrentActiveScriptIdx = scriptIdx
         CurrentSelectedIndices = selectedIndices
@@ -232,14 +232,14 @@ function check_update_needed(scriptIdx)
     -- scriptChange function triggers
     elseif ScriptChanged then
         if scriptIdx == CurrentActiveScriptIdx then
-            print("script changed")
+            if Logging then print("script changed") end
             update_statistics(scriptIdx, "all")
         end
         ScriptChanged = false
 
     -- selection changes
     elseif not Utils.table_compare_no_order(selectedIndices, CurrentSelectedIndices) then
-        print("selection changed")
+        if Logging then print("selection changed") end
         update_statistics(scriptIdx, "selected")
         CurrentSelectedIndices = selectedIndices
     end
@@ -248,15 +248,13 @@ end
 -- updates statistics on demand (can update all or some sections of the GUI)
 function update_statistics(scriptIdx, which)
     local x = os.clock()
-    if which == "all" then
+    if which == "general" or which == "all" then
         update_general_section(scriptIdx)
-        update_selected_section(scriptIdx)
-    elseif which == "general" then
-        update_general_section(scriptIdx)
-    elseif which == "selected" then
+    end
+    if which == "selected" or which == "all" then
         update_selected_section(scriptIdx)
     end
-    print(string.format("refresh took %.3f s", os.clock() - x))
+    if Logging then print(string.format("refresh took %.3f s", os.clock() - x)) end
 end
 
 -- updates values for the 'General' GUI section
